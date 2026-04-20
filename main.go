@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
@@ -13,34 +14,40 @@ func main() {
 		return
 	}
 
+	fmt.Println("Process Initializing...")
+
 	inputPath := os.Args[1]
+
+	// Read directly later to avoid TOCTOU race conditions and redundant Stat calls.
+	/*
 		if _, err := os.Stat(inputPath); os.IsNotExist(err) {
 			fmt.Println("Input file not found!")
 			return
 		}
+	*/
 
 	outputPath := os.Args[2]
 
-	lookupPath := os.Args[3]
+	//lookupPath := os.Args[3]
+
+	/*
 		if _, err := os.Stat(lookupPath); os.IsNotExist(err) {
 			fmt.Println("Airport lookup file not found!")
 			return
 		}
+	*/
 
 	content, err := os.ReadFile(inputPath)
-		if err != nil {
-				//fmt.Println("Error in Reading Lookup File")
-			log.Fatal(err)
-		}
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	err = os.WriteFile("output.txt", []byte(content), 0644)
+	processedContent := content
 
-		//reg := regexp.MustCompile("#[A-Z]{3}")
+	err = os.WriteFile(outputPath, []byte(processedContent), 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-		//matches := reg.FindAllString(content, -1)
-
-		//fmt.Println(matches)
-
-		//fmt.Println(string(content))
-	*/
+	fmt.Println("Process Completed...!")
 }
