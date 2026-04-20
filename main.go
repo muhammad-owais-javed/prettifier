@@ -1,9 +1,12 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
+	"io"
 	"log"
 	"os"
+	"strings"
 )
 
 func main() {
@@ -25,11 +28,8 @@ func main() {
 			return
 		}
 	*/
-
 	outputPath := os.Args[2]
-
-	//lookupPath := os.Args[3]
-
+	lookupPath := os.Args[3]
 	/*
 		if _, err := os.Stat(lookupPath); os.IsNotExist(err) {
 			fmt.Println("Airport lookup file not found!")
@@ -37,12 +37,34 @@ func main() {
 		}
 	*/
 
+	iataMap, icaoMap, err := loadAirportData(lookupPath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	// fmt.Println("IATA Map")
+	// fmt.Println(iataMap)
+	// fmt.Println("ICAO Map")
+	// fmt.Print(icaoMap)
+
 	content, err := os.ReadFile(inputPath)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	processedContent := content
+	textContent := string(content)
+
+	for code, airportName := range iataMap {
+		match := "#" + code
+		textContent = strings.ReplaceAll(textContent, match, airportName)
+	}
+
+	for code, airportName := range icaoMap {
+		match := "##" + code
+		textContent = strings.ReplaceAll(textContent, match, airportName)
+	}
+
+	processedContent := textContent
 
 	err = os.WriteFile(outputPath, []byte(processedContent), 0644)
 	if err != nil {
@@ -50,4 +72,60 @@ func main() {
 	}
 
 	fmt.Println("Process Completed...!")
+}
+
+func loadAirportData(path string) (map[string]string, map[string]string, error) {
+	file, err := os.Open(path)
+	if err != nil {
+		log.Fatalf("Airport Lookup file not found: %w", err)
+	}
+	defer file.Close()
+
+	iataMap := make(map[string]string) // Key: "LAX", Value: "Los Angeles International Airport"
+	icaoMap := make(map[string]string) // Key: "EGLL", Value: "London Heathrow Airport"
+
+	reader := csv.NewReader(file)
+	// Discarding first line
+	_, err = reader.Read()
+
+	if err != nil {
+		return nil, nil, fmt.Errorf("Could not read header from airport lookup: %w", err)
+	}
+
+	for {
+		data, err := reader.Read()
+
+		if err == io.EOF {
+			break
+		}
+
+		if err != nil {
+			return nil, nil, fmt.Errorf("Error reading airport-lookup record: %w", err)
+		}
+
+		if len(data) != 6 {
+			return nil, nil, fmt.Errorf("airport lookup malformed: incorrect number of columns")
+		}
+
+		airportName := data[0]
+		icaoCode := data[3]
+		iataCode := data[4]
+
+		for i, col := range data {
+			if col == "" {
+				return nil, nil, fmt.Errorf("airport lookup malformed: blank data in column %d", i+1)
+			}
+		}
+
+		if icaoCode != "" {
+			icaoMap[icaoCode] = airportName
+		}
+
+		if iataCode != "" {
+			iataMap[iataCode] = airportName
+		}
+
+	}
+
+	return iataMap, icaoMap, nil
 }
