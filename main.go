@@ -85,11 +85,25 @@ func loadAirportData(path string) (map[string]string, map[string]string, error) 
 	icaoMap := make(map[string]string) // Key: "EGLL", Value: "London Heathrow Airport"
 
 	reader := csv.NewReader(file)
-	// Discarding first line
-	_, err = reader.Read()
 
+	header, err := reader.Read()
 	if err != nil {
 		return nil, nil, fmt.Errorf("Could not read header from airport lookup: %w", err)
+	}
+
+	var nameIndex int
+	var iataIndex int
+	var icaoIndex int
+
+	for i, column := range header {
+		switch column {
+		case "name":
+			nameIndex = i
+		case "iata_code":
+			iataIndex = i
+		case "icao_code":
+			icaoIndex = i
+		}
 	}
 
 	for {
@@ -103,13 +117,13 @@ func loadAirportData(path string) (map[string]string, map[string]string, error) 
 			return nil, nil, fmt.Errorf("Error reading airport-lookup record: %w", err)
 		}
 
-		if len(data) != 6 {
+		if len(data) != len(header) {
 			return nil, nil, fmt.Errorf("airport lookup malformed: incorrect number of columns")
 		}
 
-		airportName := data[0]
-		icaoCode := data[3]
-		iataCode := data[4]
+		airportName := data[nameIndex]
+		iataCode := data[iataIndex]
+		icaoCode := data[icaoIndex]
 
 		for i, col := range data {
 			if col == "" {
