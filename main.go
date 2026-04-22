@@ -11,6 +11,11 @@ import (
 	"strings"
 )
 
+type AirportInfo struct {
+	Name string
+	City string
+}
+
 func main() {
 
 	if len(os.Args) != 4 || os.Args[1] == "help" || os.Args[1] == "-h" {
@@ -56,14 +61,24 @@ func main() {
 
 	textContent := string(content)
 
-	for code, airportName := range iataMap {
-		match := "#" + code
-		textContent = strings.ReplaceAll(textContent, match, airportName)
+	for code, info := range iataMap {
+		match := "*#" + code
+		textContent = strings.ReplaceAll(textContent, match, info.City)
 	}
 
-	for code, airportName := range icaoMap {
+	for code, info := range icaoMap {
+		match := "*##" + code
+		textContent = strings.ReplaceAll(textContent, match, info.City)
+	}
+
+	for code, info := range iataMap {
+		match := "#" + code
+		textContent = strings.ReplaceAll(textContent, match, info.Name)
+	}
+
+	for code, info := range icaoMap {
 		match := "##" + code
-		textContent = strings.ReplaceAll(textContent, match, airportName)
+		textContent = strings.ReplaceAll(textContent, match, info.Name)
 	}
 
 	reg := regexp.MustCompile(`(D|T12|T24)\((.*?)\)`)
@@ -191,15 +206,15 @@ func main() {
 	fmt.Println("Process Completed...!")
 }
 
-func loadAirportData(path string) (map[string]string, map[string]string, error) {
+func loadAirportData(path string) (map[string]AirportInfo, map[string]AirportInfo, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		log.Fatalf("Airport Lookup file not found: %w", err)
 	}
 	defer file.Close()
 
-	iataMap := make(map[string]string) // Key: "LAX", Value: "Los Angeles International Airport"
-	icaoMap := make(map[string]string) // Key: "EGLL", Value: "London Heathrow Airport"
+	iataMap := make(map[string]AirportInfo) // Key: "LAX", Value: {Name:"Los Angeles International Airport", City:"Los Angeles"}
+	icaoMap := make(map[string]AirportInfo) // Key: "EGLL", Value: {Name: "London Heathrow Airport", City: "London"}
 
 	reader := csv.NewReader(file)
 
@@ -211,6 +226,7 @@ func loadAirportData(path string) (map[string]string, map[string]string, error) 
 	var nameIndex int
 	var iataIndex int
 	var icaoIndex int
+	var cityIndex int
 
 	for i, column := range header {
 		switch column {
@@ -220,6 +236,8 @@ func loadAirportData(path string) (map[string]string, map[string]string, error) 
 			iataIndex = i
 		case "icao_code":
 			icaoIndex = i
+		case "municipality":
+			cityIndex = i
 		}
 	}
 
@@ -241,6 +259,12 @@ func loadAirportData(path string) (map[string]string, map[string]string, error) 
 		airportName := data[nameIndex]
 		iataCode := data[iataIndex]
 		icaoCode := data[icaoIndex]
+		cityName := data[cityIndex]
+
+		info := AirportInfo{
+			Name: airportName,
+			City: cityName,
+		}
 
 		for i, col := range data {
 			if col == "" {
@@ -249,11 +273,11 @@ func loadAirportData(path string) (map[string]string, map[string]string, error) 
 		}
 
 		if icaoCode != "" {
-			icaoMap[icaoCode] = airportName
+			icaoMap[icaoCode] = info
 		}
 
 		if iataCode != "" {
-			iataMap[iataCode] = airportName
+			iataMap[iataCode] = info
 		}
 
 	}
