@@ -1,0 +1,42 @@
+Welcome to your trip from #LAX to ##EGLL.
+
+Departure Date: D(2024-09-22T18:05:00-07:00)
+Departure Time (12h): T12(2024-09-22T18:05:00-07:00)
+Departure Time (24h): T24(2024-09-22T18:05:00-07:00)
+
+Arrival in London is on D(2024-09-23T10:30:00Z).
+Arrival time: T24(2024-09-23T10:30:00Z)
+
+Malformed examples that should NOT change:
+- T13(2007-04-05T12:30-02:00)
+- T12(2007-04-05T12:30−2:00)
+- D(not-a-date)
+
+
+Some text.
+
+
+
+This has three blank lines above it.
+    This line has a vertical tab.
+ See?
+This line has a form feed.
+
+
+            See?
+
+This line has a carriage return.
+
+
+ See?
+
+
+
+
+
+Some more text after four blank lines.
+
+
+Your flight from the city of *#LAX to the city of *##EGLL is confirmed.
+The airport for your return journey is #LHR.
+Welcome to *#HND, which is in the same city as ##RJTT airport.
