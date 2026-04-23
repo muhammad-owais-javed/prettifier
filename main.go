@@ -1,20 +1,11 @@
 package main
 
 import (
-	"encoding/csv"
 	"fmt"
-	"io"
 	"log"
 	"os"
-	"regexp"
-	"strconv"
-	"strings"
+	"prettifier/lib"
 )
-
-type AirportInfo struct {
-	Name string
-	City string
-}
 
 func main() {
 
@@ -24,263 +15,37 @@ func main() {
 		return
 	}
 
-	fmt.Println("Process Initializing...")
+	inputPath, outputPath, lookupPath := os.Args[1], os.Args[2], os.Args[3]
 
-	inputPath := os.Args[1]
-
-	// Read directly later to avoid TOCTOU race conditions and redundant Stat calls.
-	/*
-		if _, err := os.Stat(inputPath); os.IsNotExist(err) {
-			fmt.Println("Input file not found!")
-			return
+	fileContent, error := os.ReadFile(inputPath)
+	if error != nil {
+		if os.IsNotExist(error) {
+			log.Fatal("Input not found")
 		}
-	*/
-	outputPath := os.Args[2]
-	lookupPath := os.Args[3]
-	/*
-		if _, err := os.Stat(lookupPath); os.IsNotExist(err) {
-			fmt.Println("Airport lookup file not found!")
-			return
-		}
-	*/
-
-	iataMap, icaoMap, err := loadAirportData(lookupPath)
-	if err != nil {
-		log.Fatal(err)
+		log.Fatal(error)
 	}
 
-	// fmt.Println("IATA Map")
-	// fmt.Println(iataMap)
-	// fmt.Println("ICAO Map")
-	// fmt.Print(icaoMap)
-
-	content, err := os.ReadFile(inputPath)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	textContent := string(content)
-
-	for code, info := range iataMap {
-		match := "*#" + code
-		textContent = strings.ReplaceAll(textContent, match, info.City)
-	}
-
-	for code, info := range icaoMap {
-		match := "*##" + code
-		textContent = strings.ReplaceAll(textContent, match, info.City)
-	}
-
-	for code, info := range iataMap {
-		match := "#" + code
-		textContent = strings.ReplaceAll(textContent, match, info.Name)
-	}
-
-	for code, info := range icaoMap {
-		match := "##" + code
-		textContent = strings.ReplaceAll(textContent, match, info.Name)
-	}
-
-	reg := regexp.MustCompile(`(D|T12|T24)\((.*?)\)`)
-	matches := reg.FindAllStringSubmatch(textContent, -1)
-	//fmt.Println(matches)
-
-	monthMap := map[string]string{
-		"01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
-		"07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
-	}
-
-	for _, match := range matches {
-
-		defaultDate := match[0]
-		dateTag := match[1]
-		//fmt.Println("dateTag: " + dateTag)
-		isoDate := match[2]
-
-		// To check if the format is not matched, skip it
-		if !strings.Contains(isoDate, "T") || !strings.Contains(isoDate, "+") && !strings.Contains(isoDate, "-") && !strings.Contains(isoDate, "Z") {
-			continue
+	iataLookup, icaoLookup, error := lib.LoadAirportData(lookupPath)
+	if error != nil {
+		if os.IsNotExist(error) {
+			log.Fatal("Airport lookup not found")
 		}
-
-		parts := strings.Split(isoDate, "T")
-		//fmt.Println(parts)
-
-		if len(parts) != 2 {
-			continue
-		}
-
-		date := parts[0]
-		//fmt.Println("Date: " + date)
-		timeWoffset := parts[1]
-		//fmt.Println("Time & Offset: " + timeWoffset)
-
-		dateSplit := strings.Split(date, "-")
-		year := dateSplit[0]
-		month := dateSplit[1]
-		day := dateSplit[2]
-
-		//fmt.Println("Year: " + year + " Month: " + month + " Day: " + day)
-
-		var time string
-		var offset string
-
-		if strings.HasSuffix(timeWoffset, "Z") {
-			time = strings.TrimSuffix(timeWoffset, "Z")
-			offset = "+00:00"
-			//fmt.Println("Time: " + time + " Offset: " + offset)
-		} else if strings.Contains(timeWoffset, "+") {
-			toffSplit := strings.Split(timeWoffset, "+")
-			time = toffSplit[0]
-			offset = "+" + toffSplit[1]
-			//fmt.Println("Time: " + time + " Offset: " + offset)
-		} else if strings.Contains(timeWoffset, "-") {
-			toffSplit := strings.Split(timeWoffset, "-")
-			time = toffSplit[0]
-			offset = "-" + toffSplit[1]
-			//fmt.Println("Time: " + time + " Offset: " + offset)
-		} else {
-			//fmt.Println("No Offset Found")
-			continue
-		}
-
-		timeSplit := strings.Split(time, ":")
-		hoursStr := timeSplit[0]
-		minutes := timeSplit[1]
-		//seconds := timeSplit[2]
-
-		//fmt.Println("hoursStr: " + hoursStr + " Minutes: " + minutes + " Seconds: " + seconds)
-
-		var formatResult string
-
-		switch dateTag {
-		case "D":
-			//fmt.Println("Case D")
-			monthName, _ := monthMap[month]
-			formatResult = fmt.Sprintf("%s-%s-%s", day, monthName, year)
-
-		case "T12":
-			hours, err := strconv.Atoi(hoursStr)
-			if err != nil {
-				continue
-			}
-			AMPM := "AM"
-			if hours >= 12 {
-				AMPM = "PM"
-			}
-			if hours > 12 {
-				hours = hours - 12
-			}
-			if hours == 0 {
-				hours = 12
-			}
-			formatResult = fmt.Sprintf("%02d:%s:%s (%s)", hours, minutes, AMPM, offset)
-
-		case "T24":
-			//fmt.Println("Case T24")
-			formatResult = fmt.Sprintf("%s:%s (%s)", hoursStr, minutes, offset)
-			//fmt.Println("Case T24 formatResult: " + formatResult)
-		}
-
-		textContent = strings.Replace(textContent, defaultDate, formatResult, 1)
-		//	fmt.Println("Text Content: " + textContent)
+		log.Fatal(error)
 	}
 
-	processedContent := textContent
+	plainOutput, colorOutput := lib.DateTimeParsing(string(fileContent), iataLookup, icaoLookup)
 
-	processedContent = strings.ReplaceAll(processedContent, "\r\n", "\n") // Handle Windows line endings first
-	processedContent = strings.ReplaceAll(processedContent, "\r", "\n")
-	processedContent = strings.ReplaceAll(processedContent, "\v", "\n")
-	processedContent = strings.ReplaceAll(processedContent, "\f", "\n")
+	plainOutput = lib.TrimSpaces(plainOutput)
+	colorOutput = lib.TrimSpaces(colorOutput)
 
-	for strings.Contains(processedContent, "\n\n\n") {
-		processedContent = strings.ReplaceAll(processedContent, "\n\n\n", "\n\n")
+	error = os.WriteFile(outputPath, []byte(plainOutput), 0644)
+	if error != nil {
+		log.Fatal(error)
 	}
+	fmt.Println("--- Prettified Itinerary ---\n")
+	fmt.Println("######\n")
+	fmt.Println(colorOutput)
+	fmt.Println("\n######")
+	fmt.Println("\nSuccessfully wrote output to", outputPath)
 
-	processedContent = strings.TrimSpace(processedContent)
-
-	err = os.WriteFile(outputPath, []byte(processedContent), 0644)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	fmt.Println("Process Completed...!")
-}
-
-func loadAirportData(path string) (map[string]AirportInfo, map[string]AirportInfo, error) {
-	file, err := os.Open(path)
-	if err != nil {
-		log.Fatalf("Airport Lookup file not found: %w", err)
-	}
-	defer file.Close()
-
-	iataMap := make(map[string]AirportInfo) // Key: "LAX", Value: {Name:"Los Angeles International Airport", City:"Los Angeles"}
-	icaoMap := make(map[string]AirportInfo) // Key: "EGLL", Value: {Name: "London Heathrow Airport", City: "London"}
-
-	reader := csv.NewReader(file)
-
-	header, err := reader.Read()
-	if err != nil {
-		return nil, nil, fmt.Errorf("Could not read header from airport lookup: %w", err)
-	}
-
-	var nameIndex int
-	var iataIndex int
-	var icaoIndex int
-	var cityIndex int
-
-	for i, column := range header {
-		switch column {
-		case "name":
-			nameIndex = i
-		case "iata_code":
-			iataIndex = i
-		case "icao_code":
-			icaoIndex = i
-		case "municipality":
-			cityIndex = i
-		}
-	}
-
-	for {
-		data, err := reader.Read()
-
-		if err == io.EOF {
-			break
-		}
-
-		if err != nil {
-			return nil, nil, fmt.Errorf("Error reading airport-lookup record: %w", err)
-		}
-
-		if len(data) != len(header) {
-			return nil, nil, fmt.Errorf("airport lookup malformed: incorrect number of columns")
-		}
-
-		airportName := data[nameIndex]
-		iataCode := data[iataIndex]
-		icaoCode := data[icaoIndex]
-		cityName := data[cityIndex]
-
-		info := AirportInfo{
-			Name: airportName,
-			City: cityName,
-		}
-
-		for i, col := range data {
-			if col == "" {
-				return nil, nil, fmt.Errorf("airport lookup malformed: blank data in column %d", i+1)
-			}
-		}
-
-		if icaoCode != "" {
-			icaoMap[icaoCode] = info
-		}
-
-		if iataCode != "" {
-			iataMap[iataCode] = info
-		}
-
-	}
-
-	return iataMap, icaoMap, nil
 }
