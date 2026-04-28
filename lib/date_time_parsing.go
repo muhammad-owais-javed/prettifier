@@ -20,8 +20,8 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 
 	for code, info := range icaoMap {
 		match := "*##" + code
-		plainText = strings.ReplaceAll(plainText, match, info.Name)
-		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.Name+ColorReset)
+		plainText = strings.ReplaceAll(plainText, match, info.City)
+		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.City+ColorReset)
 	}
 
 	for code, info := range iataMap {
