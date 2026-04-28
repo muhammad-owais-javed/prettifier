@@ -40,16 +40,12 @@ func main() {
 	plainOutput, colorOutput := lib.DateTimeParsing(string(fileContent), iataLookup, icaoLookup)
 
 	plainOutput = lib.TrimSpaces(plainOutput)
-	colorOutput = lib.TrimSpaces(colorOutput)
 
 	error = os.WriteFile(outputPath, []byte(plainOutput), 0644)
 	if error != nil {
 		log.Fatal(error)
 	}
-	fmt.Println("--- Prettified Itinerary ---\n")
-	fmt.Println("######\n")
-	fmt.Println(colorOutput)
-	fmt.Println("\n######")
-	fmt.Println("\nSuccessfully wrote output to", outputPath)
 
+	lib.StdOutput(colorOutput, outputPath)
+	
 }
