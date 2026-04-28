@@ -57,7 +57,7 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 
 		if len(data) != len(header) {
-			return nil, nil, fmt.Errorf("airport lookup malformed: incorrect number of columns")
+			return nil, nil, fmt.Errorf("Airport lookup malformed: incorrect number of columns")
 		}
 
 		airportName := data[nameIndex]
@@ -72,7 +72,7 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 
 		for i, col := range data {
 			if col == "" {
-				return nil, nil, fmt.Errorf("airport lookup malformed: blank data in column %d", i+1)
+				return nil, nil, fmt.Errorf("Airport lookup malformed: blank data in column %d", i+1)
 			}
 		}
 
