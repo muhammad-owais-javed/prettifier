@@ -31,10 +31,10 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 	}
 
 	for code, info := range iataMap {
-		pattern := "[^#]#" + regexp.QuoteMeta(code) + "\\b"
+		pattern := "([^#]|^)#" + regexp.QuoteMeta(code) + "\\b"
 		reg := regexp.MustCompile(pattern)
-		plainText = reg.ReplaceAllString(plainText, " " + info.Name)
-		colorText = reg.ReplaceAllString(colorText, " " + ColorGreen+info.Name+ColorReset)
+		plainText = reg.ReplaceAllString(plainText, "$1" + info.Name)
+		colorText = reg.ReplaceAllString(colorText, "$1" + ColorGreen+info.Name+ColorReset)
 		
 	}
 
