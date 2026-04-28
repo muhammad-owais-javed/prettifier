@@ -9,11 +9,11 @@ func TrimSpaces(processedContent string) string {
 	processedContent = strings.ReplaceAll(processedContent, "\v", "\n")
 	processedContent = strings.ReplaceAll(processedContent, "\f", "\n")
 
-	for strings.Contains(processedContent, "\n\n\n\n") {
-		processedContent = strings.ReplaceAll(processedContent, "\n\n\n\n", "\n\n\n")
+	for strings.Contains(processedContent, "\n\n\n") {
+		processedContent = strings.ReplaceAll(processedContent, "\n\n\n", "\n\n")
 	}
 
-	//processedContent = strings.TrimSpace(processedContent)
+	processedContent = strings.TrimSpace(processedContent)
 
 	return processedContent
 }
