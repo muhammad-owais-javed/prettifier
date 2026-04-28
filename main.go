@@ -20,7 +20,9 @@ func main() {
 	fileContent, error := os.ReadFile(inputPath)
 	if error != nil {
 		if os.IsNotExist(error) {
-			log.Fatal("Input not found")
+			//log.Fatal("Input not found")
+			fmt.Println("Input not found.")
+			return
 		}
 		log.Fatal(error)
 	}
@@ -28,7 +30,9 @@ func main() {
 	iataLookup, icaoLookup, error := lib.LoadAirportData(lookupPath)
 	if error != nil {
 		if os.IsNotExist(error) {
-			log.Fatal("Airport lookup not found")
+			//log.Fatal("Airport lookup not found")
+			fmt.Println("Airport lookup not found.")
+			return
 		}
 		log.Fatal(error)
 	}
