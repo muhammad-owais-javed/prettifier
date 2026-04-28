@@ -85,6 +85,17 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		month := dateSplit[1]
 		day := dateSplit[2]
 
+		if _, err := strconv.Atoi(year); err != nil {
+			continue
+		}
+	
+		if _, err := strconv.Atoi(month); err != nil {
+			continue
+		}
+		if _, err := strconv.Atoi(day); err != nil {
+			continue
+		}
+
 		var time string
 		var offset string
 
