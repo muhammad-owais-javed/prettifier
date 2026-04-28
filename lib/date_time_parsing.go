@@ -65,6 +65,11 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		timeWoffset := parts[1]
 
 		dateSplit := strings.Split(date, "-")
+
+		if len(dateSplit) != 3{
+			continue
+		}
+
 		year := dateSplit[0]
 		month := dateSplit[1]
 		day := dateSplit[2]
@@ -88,6 +93,11 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		}
 
 		timeSplit := strings.Split(time, ":")
+
+		if len (timeSplit) < 2 {
+			continue
+		}
+
 		hoursStr := timeSplit[0]
 		minutes := timeSplit[1]
 
@@ -96,7 +106,7 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		switch dateTag {
 		case "D":
 			monthName, _ := monthMap[month]
-			formatResult = fmt.Sprintf("%s-%s-%s", day, monthName, year)
+			formatResult = fmt.Sprintf("%s %s %s", day, monthName, year)
 
 		case "T12":
 			hours, err := strconv.Atoi(hoursStr)
