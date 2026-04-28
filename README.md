@@ -38,6 +38,12 @@ Use go run to compile and execute the program in one step. The command requires 
 ```sh
 go run . ./input.txt ./output.txt ./airport-lookup.csv
 ```
+_(There are sample input and airport-lookup files are present to use for testing)_
+
+```sh
+cp airport-lookup-sample.csv airport-lookup.csv
+cp input-sample.txt input.txt
+```
 
 ### Building the Executable
 
