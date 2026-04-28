@@ -40,3 +40,10 @@ Some more text after four blank lines.
 Your flight from the city of *#LAX to the city of *##EGLL is confirmed.
 The airport for your return journey is #LHR.
 Welcome to *#HND, which is in the same city as ##RJTT airport.
+
+Edge Cases:
+
+##HAJW ##OMDB
+
+T24(2042-09-01T2143Z)
+T24(2042-0901T21:43Z)
