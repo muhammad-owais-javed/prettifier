@@ -36,10 +36,10 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		switch column {
 		case "name":
 			nameIndex = i
-		case "iata_code":
-			iataIndex = i
 		case "icao_code":
 			icaoIndex = i
+		case "iata_code":
+			iataIndex = i
 		case "municipality":
 			cityIndex = i
 		}
@@ -61,8 +61,8 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 
 		airportName := data[nameIndex]
-		iataCode := data[iataIndex]
 		icaoCode := data[icaoIndex]
+		iataCode := data[iataIndex]
 		cityName := data[cityIndex]
 
 		info := AirportInfo{
