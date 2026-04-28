@@ -34,7 +34,8 @@ func main() {
 			fmt.Println("Airport lookup not found.")
 			return
 		}
-		log.Fatal(error)
+		fmt.Println(error)
+		return
 	}
 
 	plainOutput, colorOutput := lib.DateTimeParsing(string(fileContent), iataLookup, icaoLookup)

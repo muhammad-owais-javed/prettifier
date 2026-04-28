@@ -4,7 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-	"log"
+	//"log"
 	"os"
 )
 
@@ -16,7 +16,9 @@ type AirportInfo struct {
 func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInfo, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		log.Fatalf("Airport Lookup file not found: %w", err)
+		//fmt.Println("Airport lookup not found.")
+		return nil, nil, err
+		//log.Fatalf("Airport Lookup file not found: %w", err)
 	}
 	defer file.Close()
 
@@ -27,10 +29,11 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 
 	header, err := reader.Read()
 	if err != nil {
+		fmt.Println("Airport lookup malformed")
 		return nil, nil, fmt.Errorf("Could not read header from airport lookup: %w", err)
 	}
 
-	var nameIndex, iataIndex, icaoIndex, cityIndex int
+	nameIndex, iataIndex, icaoIndex, cityIndex := -1, -1, -1, -1
 
 	for i, column := range header {
 		switch column {
@@ -45,6 +48,12 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 	}
 
+	if nameIndex == -1 || iataIndex == -1 || icaoIndex == -1 || cityIndex == -1 {
+    	//fmt.Println("Airport lookup malformed")
+		return nil, nil, fmt.Errorf("Airport lookup malformed")
+	}
+
+
 	for {
 		data, err := reader.Read()
 
@@ -53,11 +62,11 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 
 		if err != nil {
-			return nil, nil, fmt.Errorf("Error reading airport-lookup record: %w", err)
+			return nil, nil, fmt.Errorf("Airport lookup malformed") 
 		}
 
 		if len(data) != len(header) {
-			return nil, nil, fmt.Errorf("Airport lookup malformed: incorrect number of columns")
+			return nil, nil, fmt.Errorf("Airport lookup malformed") 
 		}
 
 		airportName := data[nameIndex]
@@ -70,9 +79,9 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 			City: cityName,
 		}
 
-		for i, col := range data {
+		for _, col := range data {
 			if col == "" {
-				return nil, nil, fmt.Errorf("Airport lookup malformed: blank data in column %d", i+1)
+				return nil, nil, fmt.Errorf("Airport lookup malformed") 
 			}
 		}
 
