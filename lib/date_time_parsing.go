@@ -12,22 +12,16 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 	plainText := textContent
 	colorText := textContent
 
-	for code, info := range iataMap {
-		match := "*#" + code
-		plainText = strings.ReplaceAll(plainText, match, info.City)
-		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.City+ColorReset)
-	}
-
 	for code, info := range icaoMap {
 		match := "*##" + code
 		plainText = strings.ReplaceAll(plainText, match, info.City)
 		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.City+ColorReset)
 	}
-
+	
 	for code, info := range iataMap {
-		match := "#" + code
-		plainText = strings.ReplaceAll(plainText, match, info.Name)
-		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.Name+ColorReset)
+		match := "*#" + code
+		plainText = strings.ReplaceAll(plainText, match, info.City)
+		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.City+ColorReset)
 	}
 
 	for code, info := range icaoMap {
@@ -36,6 +30,13 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.Name+ColorReset)
 	}
 
+	for code, info := range iataMap {
+		match := "#" + code
+		plainText = strings.ReplaceAll(plainText, match, info.Name)
+		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.Name+ColorReset)
+	}
+
+	
 	reg := regexp.MustCompile(`(D|T12|T24)\((.*?)\)`)
 	matches := reg.FindAllStringSubmatch(plainText, -1)
 
