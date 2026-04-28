@@ -39,7 +39,7 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 	}
 
 	
-	reg := regexp.MustCompile(`(D|T12|T24)\((.*?)\)`)
+	reg := regexp.MustCompile(`\b(D|T12|T24)\((.*?)\)`)
 	matches := reg.FindAllStringSubmatch(plainText, -1)
 
 	monthMap := map[string]string{
@@ -52,6 +52,15 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		defaultDate := match[0]
 		dateTag := match[1]
 		isoDate := match[2]
+
+		idx := strings.Index(plainText, defaultDate)
+		if idx != -1 && idx+len(defaultDate) < len(plainText) {
+		nextChar := plainText[idx+len(defaultDate)]
+		if nextChar == 'R' || nextChar == 'S' {
+			continue
+		}
+	}
+
 
 		if !strings.Contains(isoDate, "T") || !strings.Contains(isoDate, "+") && !strings.Contains(isoDate, "-") && !strings.Contains(isoDate, "Z") {
 			continue
