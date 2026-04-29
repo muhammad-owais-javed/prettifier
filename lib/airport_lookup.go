@@ -85,6 +85,17 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 
 		airportName := data[nameIndex]
+
+		if airportName != "" {
+			for _, char := range airportName {
+				if char < 32 || char > 126 {
+					return nil, nil, fmt.Errorf("Airport lookup malformed")
+				}
+			}
+			//return nil, nil, fmt.Errorf("Airport lookup malformed") 
+		}
+
+
 		icaoCode := data[icaoIndex]
 		iataCode := data[iataIndex]
 		cityName := data[cityIndex]
@@ -100,7 +111,7 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 			}
 		}
 
-		if icaoCode != "" {
+		/*if icaoCode != "" {
 			if len(icaoCode) != 4 {
 				return nil, nil, fmt.Errorf("Airport lookup malformed")
 			}
@@ -109,9 +120,9 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 					return nil, nil, fmt.Errorf("Airport lookup malformed")
 				}
 			}
-		}
+		}*/
 
-		if iataCode != "" {
+		/*if iataCode != "" {
 			if len(iataCode) != 3 {
 				return nil, nil, fmt.Errorf("Airport lookup malformed")
 			}
@@ -120,7 +131,7 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 					return nil, nil, fmt.Errorf("Airport lookup malformed")
 				}
 			}
-		}
+		}*/
 
 		if icaoCode != "" {
 			icaoMap[icaoCode] = info
