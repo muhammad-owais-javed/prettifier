@@ -101,6 +101,28 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 
 		if icaoCode != "" {
+			if len(icaoCode) != 4 {
+				return nil, nil, fmt.Errorf("Airport lookup malformed")
+			}
+			for _, char := range icaoCode {
+				if char < 'A' || char > 'Z' {
+					return nil, nil, fmt.Errorf("Airport lookup malformed")
+				}
+			}
+		}
+
+		if iataCode != "" {
+			if len(iataCode) != 3 {
+				return nil, nil, fmt.Errorf("Airport lookup malformed")
+			}
+			for _, char := range iataCode {
+				if char < 'A' || char > 'Z' {
+					return nil, nil, fmt.Errorf("Airport lookup malformed")
+				}
+			}
+		}
+
+		if icaoCode != "" {
 			icaoMap[icaoCode] = info
 		}
 
