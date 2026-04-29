@@ -122,6 +122,10 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 
 		hoursStr := timeSplit[0]
 		minutes := timeSplit[1]
+		
+		if len(hoursStr) != 2 || len(minutes) != 2 {
+			continue
+		}
 
 		var formatResult string
 
