@@ -35,16 +35,27 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 
 	nameIndex, iataIndex, icaoIndex, cityIndex := -1, -1, -1, -1
 
+	assignedHeaders := make(map[string]bool)
+
 	for i, column := range header {
+
+		if assignedHeaders[column] {
+			return nil, nil, fmt.Errorf("Airport lookup malformed")
+		}
+
 		switch column {
 		case "name":
 			nameIndex = i
+			assignedHeaders[column] = true
 		case "icao_code":
 			icaoIndex = i
+			assignedHeaders[column] = true
 		case "iata_code":
 			iataIndex = i
+			assignedHeaders[column] = true
 		case "municipality":
 			cityIndex = i
+			assignedHeaders[column] = true
 		}
 	}
 
