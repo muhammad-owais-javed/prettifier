@@ -33,6 +33,10 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		return nil, nil, fmt.Errorf("Could not read header from airport lookup: %w", err)
 	}
 
+	if len(header) != 6 {
+		return nil, nil, fmt.Errorf("Airport lookup malformed")
+	}
+
 	nameIndex, iataIndex, icaoIndex, cityIndex := -1, -1, -1, -1
 
 	assignedHeaders := make(map[string]bool)
