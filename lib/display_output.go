@@ -1,10 +1,9 @@
 package lib
 
 import (
+	"bufio"
 	"fmt"
 	"os"
-	"bufio"
-
 )
 
 func StdOutput(colorOutput string, outputPath string) string {
