@@ -17,10 +17,10 @@ func TrimSpaces(processedContent string) string {
 		processedContent = strings.TrimPrefix(processedContent, "\n")
 	}
 
-	if strings.HasSuffix(processedContent, "\n\n") {
-		processedContent = strings.TrimSuffix(processedContent, "\n")
-	}
-
+	/* 	if strings.HasSuffix(processedContent, "\n\n") {
+	   		processedContent = strings.TrimSuffix(processedContent, "\n")
+	   	}
+	*/
 	processedContent = strings.Trim(processedContent, " \t")
 
 	return processedContent
