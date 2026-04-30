@@ -4,6 +4,7 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
+
 	//"log"
 	"os"
 )
@@ -64,10 +65,9 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 	}
 
 	if nameIndex == -1 || iataIndex == -1 || icaoIndex == -1 || cityIndex == -1 {
-    	//fmt.Println("Airport lookup malformed")
+		//fmt.Println("Airport lookup malformed")
 		return nil, nil, fmt.Errorf("Airport lookup malformed")
 	}
-
 
 	for {
 		data, err := reader.Read()
@@ -77,11 +77,11 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 
 		if err != nil {
-			return nil, nil, fmt.Errorf("Airport lookup malformed") 
+			return nil, nil, fmt.Errorf("Airport lookup malformed")
 		}
 
 		if len(data) != len(header) {
-			return nil, nil, fmt.Errorf("Airport lookup malformed") 
+			return nil, nil, fmt.Errorf("Airport lookup malformed")
 		}
 
 		airportName := data[nameIndex]
@@ -92,9 +92,8 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 					return nil, nil, fmt.Errorf("Airport lookup malformed")
 				}
 			}
-			//return nil, nil, fmt.Errorf("Airport lookup malformed") 
+			//return nil, nil, fmt.Errorf("Airport lookup malformed")
 		}
-
 
 		icaoCode := data[icaoIndex]
 		iataCode := data[iataIndex]
@@ -107,7 +106,7 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 
 		for _, col := range data {
 			if col == "" {
-				return nil, nil, fmt.Errorf("Airport lookup malformed") 
+				return nil, nil, fmt.Errorf("Airport lookup malformed")
 			}
 		}
 
