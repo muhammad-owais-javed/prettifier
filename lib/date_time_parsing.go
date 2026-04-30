@@ -3,8 +3,10 @@ package lib
 import (
 	"fmt"
 	"regexp"
-	"strconv"
+
+	// "strconv"
 	"strings"
+	"time"
 )
 
 func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap map[string]AirportInfo) (string, string) {
@@ -17,7 +19,7 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		plainText = strings.ReplaceAll(plainText, match, info.City)
 		colorText = strings.ReplaceAll(colorText, match, ColorGreen+info.City+ColorReset)
 	}
-	
+
 	for code, info := range iataMap {
 		match := "*#" + code
 		plainText = strings.ReplaceAll(plainText, match, info.City)
@@ -33,97 +35,35 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 	for code, info := range iataMap {
 		pattern := "([^#]|^)#" + regexp.QuoteMeta(code) + "\\b"
 		reg := regexp.MustCompile(pattern)
-		plainText = reg.ReplaceAllString(plainText, "$1" + info.Name)
-		colorText = reg.ReplaceAllString(colorText, "$1" + ColorGreen+info.Name+ColorReset)
-		
+		plainText = reg.ReplaceAllString(plainText, "$1"+info.Name)
+		colorText = reg.ReplaceAllString(colorText, "$1"+ColorGreen+info.Name+ColorReset)
+
 	}
 
-	
 	reg := regexp.MustCompile(`\b(D|T12|T24)\((.*?)\)`)
 	matches := reg.FindAllStringSubmatch(plainText, -1)
-
-	monthMap := map[string]string{
-		"01": "Jan", "02": "Feb", "03": "Mar", "04": "Apr", "05": "May", "06": "Jun",
-		"07": "Jul", "08": "Aug", "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dec",
-	}
 
 	for _, match := range matches {
 
 		defaultDate := match[0]
 		dateTag := match[1]
 		isoDate := match[2]
+		//fmt.Println("isoDate:", isoDate)
 
 		idx := strings.Index(plainText, defaultDate)
 		if idx != -1 && idx+len(defaultDate) < len(plainText) {
-		nextChar := plainText[idx+len(defaultDate)]
-		if nextChar == 'R' || nextChar == 'S' {
-			continue
+			nextChar := plainText[idx+len(defaultDate)]
+			if nextChar == 'R' || nextChar == 'S' {
+				continue
+			}
 		}
-	}
-
 
 		if !strings.Contains(isoDate, "T") || !strings.Contains(isoDate, "+") && !strings.Contains(isoDate, "-") && !strings.Contains(isoDate, "Z") {
 			continue
 		}
 
-		parts := strings.Split(isoDate, "T")
-
-		if len(parts) != 2 {
-			continue
-		}
-
-		date := parts[0]
-		timeWoffset := parts[1]
-
-		dateSplit := strings.Split(date, "-")
-
-		if len(dateSplit) != 3{
-			continue
-		}
-
-		year := dateSplit[0]
-		month := dateSplit[1]
-		day := dateSplit[2]
-
-		if _, err := strconv.Atoi(year); err != nil {
-			continue
-		}
-	
-		if _, err := strconv.Atoi(month); err != nil {
-			continue
-		}
-		if _, err := strconv.Atoi(day); err != nil {
-			continue
-		}
-
-		var time string
-		var offset string
-
-		if strings.HasSuffix(timeWoffset, "Z") {
-			time = strings.TrimSuffix(timeWoffset, "Z")
-			offset = "+00:00"
-		} else if strings.Contains(timeWoffset, "+") {
-			toffSplit := strings.Split(timeWoffset, "+")
-			time = toffSplit[0]
-			offset = "+" + toffSplit[1]
-		} else if strings.Contains(timeWoffset, "-") {
-			toffSplit := strings.Split(timeWoffset, "-")
-			time = toffSplit[0]
-			offset = "-" + toffSplit[1]
-		} else {
-			continue
-		}
-
-		timeSplit := strings.Split(time, ":")
-
-		if len (timeSplit) < 2 {
-			continue
-		}
-
-		hoursStr := timeSplit[0]
-		minutes := timeSplit[1]
-		
-		if len(hoursStr) != 2 || len(minutes) != 2 {
+		t, err := time.Parse("2006-01-02T15:04Z07:00", isoDate)
+		if err != nil {
 			continue
 		}
 
@@ -131,30 +71,20 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 
 		switch dateTag {
 		case "D":
-			monthName, _ := monthMap[month]
-			formatResult = fmt.Sprintf("%s %s %s", day, monthName, year)
-
+			formatResult = t.Format("02 Jan 2006")
+			fmt.Println("formatResult (D):", formatResult)
 		case "T12":
-			hours, err := strconv.Atoi(hoursStr)
-			if err != nil {
-				continue
-			}
-			AMPM := "AM"
-			if hours >= 12 {
-				AMPM = "PM"
-			}
-			if hours > 12 {
-				hours = hours - 12
-			}
-			if hours == 0 {
-				hours = 12
-			}
-			formatResult = fmt.Sprintf("%02d:%s:%s (%s)", hours, minutes, AMPM, offset)
+			formatResult = t.Format("03:04PM (-07:00)")
+			fmt.Println("formatResult (T12):", formatResult)
 
 		case "T24":
-			formatResult = fmt.Sprintf("%s:%s (%s)", hoursStr, minutes, offset)
-		}
+			formatResult = t.Format("15:04 (-07:00)") // formatResult = fmt.Sprintf("%s:%s (%s)", hoursStr, minutes, offset)
+			fmt.Println("formatResult (T24):", formatResult)
 
+		}
+		/*
+		 * Reminder: Insert the code here from the previous implementation if things get broke
+		 */
 		if formatResult != "" {
 			plainText = strings.Replace(plainText, defaultDate, formatResult, 1)
 			colorText = strings.Replace(colorText, defaultDate, ColorYellow+formatResult+ColorReset, 1)
