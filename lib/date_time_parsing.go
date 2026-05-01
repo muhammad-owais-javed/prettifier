@@ -1,10 +1,7 @@
 package lib
 
 import (
-	"fmt"
 	"regexp"
-
-	// "strconv"
 	"strings"
 	"time"
 )
@@ -37,7 +34,6 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		reg := regexp.MustCompile(pattern)
 		plainText = reg.ReplaceAllString(plainText, "$1"+info.Name)
 		colorText = reg.ReplaceAllString(colorText, "$1"+ColorGreen+info.Name+ColorReset)
-
 	}
 
 	reg := regexp.MustCompile(`\b(D|T12|T24)\((.*?)\)`)
@@ -48,7 +44,6 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		defaultDate := match[0]
 		dateTag := match[1]
 		isoDate := match[2]
-		//fmt.Println("isoDate:", isoDate)
 
 		idx := strings.Index(plainText, defaultDate)
 		if idx != -1 && idx+len(defaultDate) < len(plainText) {
@@ -72,24 +67,16 @@ func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap
 		switch dateTag {
 		case "D":
 			formatResult = t.Format("02 Jan 2006")
-			fmt.Println("formatResult (D):", formatResult)
 		case "T12":
 			formatResult = t.Format("03:04PM (-07:00)")
-			fmt.Println("formatResult (T12):", formatResult)
-
 		case "T24":
-			formatResult = t.Format("15:04 (-07:00)") // formatResult = fmt.Sprintf("%s:%s (%s)", hoursStr, minutes, offset)
-			fmt.Println("formatResult (T24):", formatResult)
-
+			formatResult = t.Format("15:04 (-07:00)")
 		}
-		/*
-		 * Reminder: Insert the code here from the previous implementation if things get broke
-		 */
+
 		if formatResult != "" {
 			plainText = strings.Replace(plainText, defaultDate, formatResult, 1)
 			colorText = strings.Replace(colorText, defaultDate, ColorYellow+formatResult+ColorReset, 1)
 		}
 	}
-
 	return plainText, colorText
 }
