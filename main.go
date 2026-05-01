@@ -17,24 +17,24 @@ func main() {
 
 	inputPath, outputPath, lookupPath := os.Args[1], os.Args[2], os.Args[3]
 
-	fileContent, error := os.ReadFile(inputPath)
-	if error != nil {
-		if os.IsNotExist(error) {
+	fileContent, err := os.ReadFile(inputPath)
+	if err != nil {
+		if os.IsNotExist(err) {
 			//log.Fatal("Input not found")
 			fmt.Println("Input not found.")
 			return
 		}
-		log.Fatal(error)
+		log.Fatal(err)
 	}
 
-	iataLookup, icaoLookup, error := lib.LoadAirportData(lookupPath)
-	if error != nil {
-		if os.IsNotExist(error) {
+	iataLookup, icaoLookup, err := lib.LoadAirportData(lookupPath)
+	if err != nil {
+		if os.IsNotExist(err) {
 			//log.Fatal("Airport lookup not found")
 			fmt.Println("Airport lookup not found.")
 			return
 		}
-		fmt.Println(error)
+		fmt.Println(err)
 		return
 	}
 
@@ -42,11 +42,11 @@ func main() {
 
 	plainOutput = lib.TrimSpaces(plainOutput)
 
-	error = os.WriteFile(outputPath, []byte(plainOutput), 0644)
-	if error != nil {
-		log.Fatal(error)
+	err = os.WriteFile(outputPath, []byte(plainOutput), 0644)
+	if err != nil {
+		log.Fatal(err)
 	}
 
 	lib.StdOutput(colorOutput, outputPath)
-	
+
 }
