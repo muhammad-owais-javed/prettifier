@@ -33,7 +33,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	plainOutput, colorOutput := lib.DateTimeParsing(string(fileContent), iataLookup, icaoLookup)
+	plainOutput, colorOutput := lib.AirportCodesAndDateTimeParsing(string(fileContent), iataLookup, icaoLookup)
 
 	plainOutput = lib.TrimSpaces(plainOutput)
 
