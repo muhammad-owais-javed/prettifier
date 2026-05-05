@@ -20,9 +20,7 @@ func main() {
 	fileContent, err := os.ReadFile(inputPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			//log.Fatal("Input not found")
-			fmt.Println("Input not found.")
-			return
+			log.Fatal("Input not found")
 		}
 		log.Fatal(err)
 	}
@@ -30,12 +28,9 @@ func main() {
 	iataLookup, icaoLookup, err := lib.LoadAirportData(lookupPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			//log.Fatal("Airport lookup not found")
-			fmt.Println("Airport lookup not found.")
-			return
+			log.Fatal("Airport lookup not found")
 		}
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
 
 	plainOutput, colorOutput := lib.DateTimeParsing(string(fileContent), iataLookup, icaoLookup)
