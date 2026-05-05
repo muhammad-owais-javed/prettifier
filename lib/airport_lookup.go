@@ -4,8 +4,6 @@ import (
 	"encoding/csv"
 	"fmt"
 	"io"
-
-	//"log"
 	"os"
 )
 
@@ -17,9 +15,7 @@ type AirportInfo struct {
 func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInfo, error) {
 	file, err := os.Open(path)
 	if err != nil {
-		//fmt.Println("Airport lookup not found.")
-		return nil, nil, err
-		//log.Fatalf("Airport Lookup file not found: %w", err)
+		return nil, nil, fmt.Errorf("Failed to open airport data file at %s: %w", path, err)
 	}
 	defer file.Close()
 
@@ -27,15 +23,18 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 	icaoMap := make(map[string]AirportInfo) // Key: "EGLL", Value: {Name: "London Heathrow Airport", City: "London"}
 
 	reader := csv.NewReader(file)
+	reader.FieldsPerRecord = -1
+	line := 1
 
 	header, err := reader.Read()
 	if err != nil {
-		fmt.Println("Airport lookup malformed")
-		return nil, nil, fmt.Errorf("Could not read header from airport lookup: %w", err)
+		return nil, nil, fmt.Errorf("Could not read header from airport data file: %w", err)
 	}
+	line++
 
 	if len(header) != 6 {
-		return nil, nil, fmt.Errorf("Airport lookup malformed")
+		fmt.Println("Airport lookup file malformed")
+		return nil, nil, fmt.Errorf("Number of Headers in Columns are not following Standard")
 	}
 
 	nameIndex, iataIndex, icaoIndex, cityIndex := -1, -1, -1, -1
@@ -45,7 +44,8 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 	for i, column := range header {
 
 		if assignedHeaders[column] {
-			return nil, nil, fmt.Errorf("Airport lookup malformed")
+			fmt.Println("Airport lookup file malformed")
+			return nil, nil, fmt.Errorf("Invalid header: Duplicate column name '%s' found", column)
 		}
 
 		switch column {
@@ -65,8 +65,8 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 	}
 
 	if nameIndex == -1 || iataIndex == -1 || icaoIndex == -1 || cityIndex == -1 {
-		//fmt.Println("Airport lookup malformed")
-		return nil, nil, fmt.Errorf("Airport lookup malformed")
+		fmt.Println("Airport lookup malformed")
+		return nil, nil, fmt.Errorf("Missing required Column in the header")
 	}
 
 	for {
@@ -77,11 +77,11 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		}
 
 		if err != nil {
-			return nil, nil, fmt.Errorf("Airport lookup malformed")
+			return nil, nil, fmt.Errorf("Error parsing airport data at line %d: %w", line, err)
 		}
 
 		if len(data) != len(header) {
-			return nil, nil, fmt.Errorf("Airport lookup malformed")
+			return nil, nil, fmt.Errorf("Column count mismatch at line %d: expected %d, got %d", line, len(header), len(data))
 		}
 
 		airportName := data[nameIndex]
@@ -89,15 +89,19 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		if airportName != "" {
 			for _, char := range airportName {
 				if char < 32 || char > 126 {
-					return nil, nil, fmt.Errorf("Airport lookup malformed")
+					fmt.Println("Airport lookup file malformed")
+					return nil, nil, fmt.Errorf("Invalid character found in airport name '%s' at line %d", airportName, line)
 				}
 			}
-			//return nil, nil, fmt.Errorf("Airport lookup malformed")
 		}
 
 		icaoCode := data[icaoIndex]
 		iataCode := data[iataIndex]
 		cityName := data[cityIndex]
+
+		if airportName == "" || icaoCode == "" || iataCode == "" || cityName == "" {
+			return nil, nil, fmt.Errorf("Empty value for a required field at line %d", line)
+		}
 
 		info := AirportInfo{
 			Name: airportName,
@@ -110,27 +114,30 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 			}
 		}
 
-		/*if icaoCode != "" {
-			if len(icaoCode) != 4 {
-				return nil, nil, fmt.Errorf("Airport lookup malformed")
-			}
-			for _, char := range icaoCode {
-				if char < 'A' || char > 'Z' {
-					return nil, nil, fmt.Errorf("Airport lookup malformed")
+		// Uncomment following lines to enable Hard Fail Test for ICAO and IATA code
+		/*
+			if icaoCode != "" {
+				if len(icaoCode) != 4 {
+					return nil, nil, fmt.Errorf("Invalid ICAO Code Length")
+				}
+				for _, char := range icaoCode {
+					if char < 'A' || char > 'Z' {
+						return nil, nil, fmt.Errorf("Invalid ICAO Code Character")
+					}
 				}
 			}
-		}*/
 
-		/*if iataCode != "" {
-			if len(iataCode) != 3 {
-				return nil, nil, fmt.Errorf("Airport lookup malformed")
-			}
-			for _, char := range iataCode {
-				if char < 'A' || char > 'Z' {
-					return nil, nil, fmt.Errorf("Airport lookup malformed")
+			if iataCode != "" {
+				if len(iataCode) != 3 {
+					return nil, nil, fmt.Errorf("Invalid IATA Code Length")
+				}
+				for _, char := range iataCode {
+					if char < 'A' || char > 'Z' {
+						return nil, nil, fmt.Errorf("Invalid IATA Character")
+					}
 				}
 			}
-		}*/
+		*/
 
 		if icaoCode != "" {
 			icaoMap[icaoCode] = info
@@ -139,6 +146,8 @@ func LoadAirportData(path string) (map[string]AirportInfo, map[string]AirportInf
 		if iataCode != "" {
 			iataMap[iataCode] = info
 		}
+
+		line++
 
 	}
 
