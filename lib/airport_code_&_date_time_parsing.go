@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func DateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap map[string]AirportInfo) (string, string) {
+func AirportCodesAndDateTimeParsing(textContent string, iataMap map[string]AirportInfo, icaoMap map[string]AirportInfo) (string, string) {
 
 	plainText := textContent
 	colorText := textContent
