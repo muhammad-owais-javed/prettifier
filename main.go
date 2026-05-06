@@ -20,7 +20,7 @@ func main() {
 	fileContent, err := os.ReadFile(inputPath)
 	if err != nil {
 		if os.IsNotExist(err) {
-			log.Fatal("Input not found")
+			log.Fatal("Input file not found")
 		}
 		log.Fatal(err)
 	}
